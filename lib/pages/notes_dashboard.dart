@@ -4,10 +4,26 @@ import 'package:notes/Services/Logic_Impl.dart';
 import 'package:provider/provider.dart';
 import '../widgets/custom_button.dart';
 import 'add_note_page.dart';
+import 'edit_note_page.dart';
 import 'view_notes_page.dart';
 
-class NotesDashboard extends StatelessWidget {
+class NotesDashboard extends StatefulWidget {
   const NotesDashboard({super.key});
+
+  @override
+  State<NotesDashboard> createState() => _NotesDashboardState();
+}
+
+class _NotesDashboardState extends State<NotesDashboard> {
+  @override
+  void initState() {
+    // load();
+    super.initState();
+  }
+
+  // void load() async {
+  //   await context.read<LogicImpl>().getUserNoteById(context: context);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +45,7 @@ class NotesDashboard extends StatelessWidget {
         centerTitle: true,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: Colors.grey[200],
-            height: 1,
-          ),
+          child: Container(color: Colors.grey[200], height: 1),
         ),
       ),
       body: SafeArea(
@@ -43,9 +56,7 @@ class NotesDashboard extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: Border(
-                  bottom: BorderSide(color: Colors.grey[200]!),
-                ),
+                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
               ),
               child: Row(
                 children: [
@@ -71,7 +82,8 @@ class NotesDashboard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          context.watch<LogicImpl>().useData?.firstName??'Unknown',
+                          context.watch<LogicImpl>().useData?.firstName ??
+                              'Unknown',
 
                           style: TextStyle(
                             fontSize: 20,
@@ -90,7 +102,9 @@ class NotesDashboard extends StatelessWidget {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const ViewNotesPage()),
+                          MaterialPageRoute(
+                            builder: (context) => const ViewNotesPage(),
+                          ),
                         );
                       },
                       backgroundColor: Colors.blue,
@@ -106,75 +120,213 @@ class NotesDashboard extends StatelessWidget {
 
             // Content Area
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // No Notes Message
-                    Container(
-                      padding: const EdgeInsets.all(40),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            spreadRadius: 1,
-                            blurRadius: 5,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.note_alt_outlined,
-                            size: 80,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No notes yet',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[600],
+              child: Consumer<LogicImpl>(
+                builder: (BuildContext context, logic, Widget? child) {
+                  final sampleNotes = logic.notes;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // No Notes Message
+                      logic.loading
+                          ? CircularProgressIndicator()
+                          : logic.notes.isEmpty
+                          ? Container(
+                        padding: const EdgeInsets.all(40),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withValues(alpha: 0.1),
+                              spreadRadius: 1,
+                              blurRadius: 5,
+                              offset: const Offset(0, 2),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Tap the button below to create your first note',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[500],
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.note_alt_outlined,
+                              size: 80,
+                              color: Colors.grey[400],
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                            const SizedBox(height: 16),
+                            Text(
+                              'No notes yet',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Tap the button below to create your first note',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      )
+                          : Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: sampleNotes.length,
+                          itemBuilder: (context, index) {
+                            final note = sampleNotes[index];
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.1),
+                                    spreadRadius: 1,
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => EditNotePage(
+                                          note: note,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // Profile Picture
+                                        Container(
+                                          width: 50,
+                                          height: 50,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.blue[100],
+                                          ),
+                                          child: note.image != null
+                                              ? ClipOval(
+                                            child: Image.network(
+                                              note.image!,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          )
+                                              : Icon(
+                                            Icons.person,
+                                            size: 30,
+                                            color: Colors.blue[700],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        // Note Content
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                note.name??'',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.grey[800],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                note.title??'',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.grey[900],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                note.notes??'',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey[600],
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        // Edit Icon
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue.withValues(alpha: 0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: IconButton(
+                                            icon: Icon(
+                                              Icons.edit,
+                                              size: 20,
+                                              color: Colors.blue,
+                                            ),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => EditNotePage(note: note,
+
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                    // Add Note Button
-                    CustomButton(
-                      text: 'Add New Note',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const AddNotePage()),
-                        );
-                      },
-                      backgroundColor: Colors.blue,
-                      textColor: Colors.white,
-                      height: 54,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      icon: Icons.add,
-                    ),
-                  ],
-                ),
+                      // Add Note Button
+                      CustomButton(
+                        text: 'Add New Note',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AddNotePage(),
+                            ),
+                          );
+                        },
+                        backgroundColor: Colors.blue,
+                        textColor: Colors.white,
+                        height: 54,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        icon: Icons.add,
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],

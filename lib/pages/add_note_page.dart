@@ -1,5 +1,8 @@
 // pages/add_note_page.dart
 import 'package:flutter/material.dart';
+import 'package:notes/model/note_model.dart';
+import 'package:notes/Services/Logic_Impl.dart';
+import 'package:provider/provider.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_form.dart';
 
@@ -39,10 +42,7 @@ class _AddNotePageState extends State<AddNotePage> {
         centerTitle: true,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: Colors.grey[200],
-            height: 1,
-          ),
+          child: Container(color: Colors.grey[200], height: 1),
         ),
       ),
       body: SafeArea(
@@ -61,10 +61,7 @@ class _AddNotePageState extends State<AddNotePage> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.grey[200],
-                        border: Border.all(
-                          color: Colors.blue,
-                          width: 2,
-                        ),
+                        border: Border.all(color: Colors.blue, width: 2),
                       ),
                       child: _selectedImagePath != null
                           ? ClipOval(
@@ -88,7 +85,8 @@ class _AddNotePageState extends State<AddNotePage> {
                         // UI only - will add image picker logic later
                         setState(() {
                           // Simulate adding a picture
-                          _selectedImagePath = 'https://via.placeholder.com/150';
+                          _selectedImagePath =
+                          'https://via.placeholder.com/150';
                         });
                       },
                       backgroundColor: Colors.white,
@@ -170,7 +168,10 @@ class _AddNotePageState extends State<AddNotePage> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+                          borderSide: const BorderSide(
+                            color: Colors.blue,
+                            width: 1.5,
+                          ),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -185,27 +186,44 @@ class _AddNotePageState extends State<AddNotePage> {
               const SizedBox(height: 32),
 
               // Submit Button
-              CustomButton(
-                text: 'Submit Note',
-                onPressed: () {
-                  // UI only - will add logic later
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Note submitted successfully!'),
-                      backgroundColor: Colors.green,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                      ),
-                    ),
+              Consumer<LogicImpl>(
+                builder: (BuildContext context, logic, Widget? child) {
+                  final user = logic.useData;
+                  return CustomButton(
+                    text: 'Submit Note',
+                    isLoading: logic.loading,
+
+                    onPressed: () async {
+                      await logic.postNote(
+                        note: NoteModel(
+                            name: _nameController.text,
+                            title: _titleController.text,
+                            notes: _notesController.text,
+                            image: null,
+                            email: user?.email!
+                        ),
+                        context: context,
+                      );
+                      // // UI only - will add logic later
+                      // ScaffoldMessenger.of(context).showSnackBar(
+                      //   const SnackBar(
+                      //     content: Text('Note submitted successfully!'),
+                      //     backgroundColor: Colors.green,
+                      //     behavior: SnackBarBehavior.floating,
+                      //     shape: RoundedRectangleBorder(
+                      //       borderRadius: BorderRadius.all(Radius.circular(8)),
+                      //     ),
+                      //   ),
+                      // );
+                      Navigator.pop(context);
+                    },
+                    backgroundColor: Colors.blue,
+                    textColor: Colors.white,
+                    height: 54,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   );
-                  Navigator.pop(context);
                 },
-                backgroundColor: Colors.blue,
-                textColor: Colors.white,
-                height: 54,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
               ),
             ],
           ),

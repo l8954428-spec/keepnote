@@ -1,20 +1,17 @@
 // pages/edit_note_page.dart
 import 'package:flutter/material.dart';
+import 'package:notes/model/note_model.dart';
+import 'package:notes/Services/Logic_Impl.dart';
+import 'package:provider/provider.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_form.dart';
 
 class EditNotePage extends StatefulWidget {
-  final String noteName;
-  final String noteTitle;
-  final String noteContent;
-  final String? noteImage;
+  final NoteModel note;
 
   const EditNotePage({
-    super.key,
-    required this.noteName,
-    required this.noteTitle,
-    required this.noteContent,
-    this.noteImage,
+    super.key, required this.note,
+
   });
 
   @override
@@ -31,10 +28,10 @@ class _EditNotePageState extends State<EditNotePage> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.noteName);
-    _titleController = TextEditingController(text: widget.noteTitle);
-    _notesController = TextEditingController(text: widget.noteContent);
-    _selectedImagePath = widget.noteImage;
+    _nameController = TextEditingController(text: widget.note.name);
+    _titleController = TextEditingController(text: widget.note.title);
+    _notesController = TextEditingController(text: widget.note.notes);
+    _selectedImagePath = widget.note.image;
   }
 
   @override
@@ -205,73 +202,87 @@ class _EditNotePageState extends State<EditNotePage> {
               const SizedBox(height: 32),
 
               // Update Button
-              CustomButton(
-                text: 'Update Note',
-                onPressed: () {
-                  // UI only - will add update logic later
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Note updated successfully!'),
-                      backgroundColor: Colors.green,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                      ),
-                    ),
+              Consumer<LogicImpl>(
+                builder: (BuildContext context, logic, Widget? child) {
+                  bool loading = logic.loading;
+                  return CustomButton(
+                    text: 'Update Note',
+                    isLoading: loading&&logic.isUpdate==true,
+                    onPressed: () {
+                      // UI only - will add update logic later
+                      logic.updateNotes(note: widget.note.copyWith(
+                          name: _nameController.text,
+                          title: _titleController.text,
+                          notes: _notesController.text
+                      ), context: context, isUpdate: true);
+                      // ScaffoldMessenger.of(context).showSnackBar(
+                      //   const SnackBar(
+                      //     content: Text('Note updated successfully!'),
+                      //     backgroundColor: Colors.green,
+                      //     behavior: SnackBarBehavior.floating,
+                      //     shape: RoundedRectangleBorder(
+                      //       borderRadius: BorderRadius.all(Radius.circular(8)),
+                      //     ),
+                      //   ),
+                      // );
+                      //Navigator.pop(context);
+                    },
+                    backgroundColor: Colors.blue,
+                    textColor: Colors.white,
+                    height: 54,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   );
-                  Navigator.pop(context);
                 },
-                backgroundColor: Colors.blue,
-                textColor: Colors.white,
-                height: 54,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+
               ),
 
               const SizedBox(height: 12),
+              Consumer<LogicImpl>(
+                builder: (BuildContext _context, logic, Widget? child) {
+                  bool loading = logic.loading;
+                  return CustomButton(
+                    isLoading: loading&&logic.isUpdate==false,
+                    text: 'Delete Note',
+                    onPressed: () {
+                      // UI only - will add delete logic later
+                      showDialog(
+                        context: _context,
+                        builder: (_context) => AlertDialog(
+                          title: const Text('Delete Note'),
+                          content: const Text('Are you sure you want to delete this note?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(_context),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () {
 
-              // Delete Button
-              CustomButton(
-                text: 'Delete Note',
-                onPressed: () {
-                  // UI only - will add delete logic later
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Delete Note'),
-                      content: const Text('Are you sure you want to delete this note?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Note deleted successfully!'),
-                                backgroundColor: Colors.red,
-                                behavior: SnackBarBehavior.floating,
+                                logic.deleteNote(noteId: widget.note.noteId!, context: context, isUpdate: false);
+                                Navigator.pop(context);
+
+
+                              },
+                              child: const Text(
+                                'Delete',
+                                style: TextStyle(color: Colors.red),
                               ),
-                            );
-                          },
-                          child: const Text(
-                            'Delete',
-                            style: TextStyle(color: Colors.red),
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      );
+                    },
+                    backgroundColor: Colors.white,
+                    textColor: Colors.red,
+                    height: 54,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    isOutlined: true,
                   );
+                  // Delete Button
                 },
-                backgroundColor: Colors.white,
-                textColor: Colors.red,
-                height: 54,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                isOutlined: true,
+
               ),
             ],
           ),
